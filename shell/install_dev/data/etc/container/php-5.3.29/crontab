@@ -1,0 +1,9 @@
+*/1 * * * * root echo "Hello world" >> /var/log/cron.log 2>&1
+*/1 * * * *  root /usr/bin/php   /opt/htdocs/script/crontab/crontab.php
+*/1 * * * *  root /opt/htdocs/script/queue/queue.sh /usr/bin/php
+*/1 * * * *  root echo "end" >> /var/log/cron.log 2>&1
+
+
+
+
+

@@ -1,0 +1,32 @@
+web:
+  image: 'gitlab/gitlab-ce:latest'
+  hostname: 'gitlab'
+  restart: always
+  environment:
+    GITLAB_OMNIBUS_CONFIG: |
+      
+      # Add any other gitlab.rb configuration here, each on its own line
+      external_url 'http://172.17.0.1'
+      gitlab_rails['smtp_enable'] = true
+      gitlab_rails['smtp_address'] = "smtp.exmail.qq.com"
+      gitlab_rails['smtp_port'] = 25
+      gitlab_rails['smtp_user_name'] = "statistics@readtv.cn"
+      gitlab_rails['smtp_password'] = "Readtv0223"
+      gitlab_rails['smtp_domain'] = "smpt.qq.com"
+      gitlab_rails['smtp_authentication'] = :login
+      gitlab_rails['smtp_enable_starttls_auto'] = true
+      gitlab_rails['git_user_email'] = "statistics@readtv.cn"
+      user["git_user_email"] = "statistics@readtv.cn"
+      gitlab_rails['gitlab_email_from'] = 'statistics@readtv.cn'
+  ports:
+    - '50080:80'
+    - '50443:443'
+    - '50022:22'
+  volumes:
+    - '/srv/gitlab/config/v1:/etc/gitlab'
+    - '/srv/gitlab/logs/v1:/var/log/gitlab'
+    - '/srv/gitlab/data/v1:/var/opt/gitlab'
+  networks:
+          mynet:
+            ipv4_address: 172.25.0.102
+

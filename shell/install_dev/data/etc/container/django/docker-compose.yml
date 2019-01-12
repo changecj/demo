@@ -1,0 +1,17 @@
+version: "2"
+services:
+  'nginx':
+    image: zsz/nginx-1.10.1
+    ports:
+      - "20080:80"
+    links:
+      - "django"
+    volumes:
+      - ./htdocs:/opt/htdocs
+      - ./data/etc/nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./data/etc/nginx/sites-enabled:/etc/nginx/conf.d
+  django:
+    image: zsz/django
+    volumes:
+      - ./htdocs:/opt/htdocs
+

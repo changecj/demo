@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+#docker devevlop enviroment
+dockerenv(){
+
+if (( $( which docker | wc -l)==0 )) ;then
+	curl -sSL https://get.daocloud.io/docker | sh
+	sudo service docker start
+	sudo groupadd docker
+	sudo usermod -aG docker $uname
+fi
+
+if (( $( which docker-compose | wc -l)==0 )) ;then
+	pip install -U docker-compose==1.8.0
+fi
+
+
+if (( $(cat /lib/systemd/system/docker.service  | grep 0.0.0.0:4243 | wc -l)==0 )) ;then
+   sudo sed -i -e 's#/usr/bin/dockerd -H fd://#/usr/bin/dockerd -H fd://  -H tcp://0.0.0.0:4243 --dns 180.76.76.76 --dns 8.8.8.8 --registry-mirror=http://1c50be68.m.daocloud.io#g' /lib/systemd/system/docker.service
+fi
+
+}
+
+dockerenv

@@ -1,0 +1,138 @@
+
+----------硬盘处理-----------
+fdisk -l
+fdisk /dev/vdb
+  >> n->p->1->回车->回车->wq
+mkfs.ext3 /dev/vdb1
+mkdir /data
+mount /dev/vdb1 /data
+
+vi /etc/fstab
+  >>/dev/vdb1    /data      ext3    noatime,nodiratime      0 0
+
+----------Git+Script----------
+yum install git
+git config --global user.name 'system'
+git config --global user.user 'system@readtv.com'
+ssh-keygen -t rsa -C "zhuanxian154@readtv.cn"
+
+####添加当前的pub文件到服务器--安装lnmp
+git clone git@gitlab.huanqiugo.com:ghs/script.git
+cd script/shell/lnmp_installer/
+./install.sh -i
+
+###################################
+###    启动服务                #####
+###    service nginx start    #####
+###    service php-fpm start  #####
+###################################
+
+----------代码文件同步-----------
+cd /root/script/shell/rsync
+vi common.sh
+   >>修改服务端的ip
+./client.sh        //同步文件
+
+
+挂载图片服务器（图片服务器也需要做对应的调整）
+cd /root/script/shell/nfs_share/
+vim common.sh
+    >>修改当前的图片服务器ip等
+
+    --安装szrz，上传nginx的配置文件，证书等
+    --yum install lrzsz -y
+
+
+------------服务优化--------------
+
+1.nginx 参数优化
+
+2.php-fpm参数优化
+
+3.系统设置 ipv4及网卡优化
+
+
+------------Redis-防火墙策略--------------
+
+Redis服务器-iptable增加端口放行，可使用redis
+
+vi /etc/system/iptables
+修改完后记得重启防火墙服务
+service iptables restart
+
+
+***标注****
+对TCP/IP网络参数进行调整
+
+vi /etc/sysctl.conf
+#net.ipv4.tcp_max_syn_backlog = 1024
+#net.ipv6.conf.all.disable_ipv6 = 1
+#net.ipv6.conf.default.disable_ipv6 = 1
+#net.ipv6.conf.lo.disable_ipv6 = 1
+#####新增的内核TCP参数
+net.ipv4.tcp_fin_timeout = 20
+# net.ipv4.tcp_keepalive_time = 1200 -------
+net.ipv4.tcp_tw_reuse = 1
+#表示开启TCP连接中TIME-WAIT sockets的快速回收
+net.ipv4.tcp_tw_recycle = 1
+net.ipv4.ip_local_port_range = 1024 65000
+net.ipv4.tcp_max_syn_backlog = 8192
+配置生效--
+sysctl -p
+
+
+##最大的TCP数据发送窗口
+net.core.rmem_max = 167772160
+##最大的TCP数据接收窗口
+net.core.wmem_max = 167772160
+net.ipv4.tcp_wmem = 8192 131072 167772160
+net.ipv4.tcp_rmem = 8192 87380 167772160
+net.ipv4.tcp_mem = 786432  1048576 167772160
+net.ipv4.tcp_retries2 = 5
+net.ipv4.tcp_fin_timeout = 20
+#开启SYN Cookies。当出现SYN等待队列溢出时，启用cookies来处理，可防范少量SYN攻击
+
+#表示开启TCP连接中TIME-WAIT sockets的快速回收
+net.ipv4.tcp_tw_recycle = 1
+#表示开启重用。允许将TIME-WAIT sockets重新用于新的TCP连接，减少TIME-WAIT 状态
+net.ipv4.tcp_tw_reuse = 1
+##每个网络接口接收数据包的速率比内核处理这些包的速率快时，允许送到队列的最大数目,默认是300
+net.core.netdev_max_backlog = 300000
+net.ipv4.tcp_no_metrics_save = 1
+##定义了系统中每一个端口最大的监听队列的长度，这是个全局的参数。
+net.core.somaxconn = 2621440
+net.ipv4.tcp_max_orphans = 2621440
+net.ipv4.tcp_max_syn_backlog = 2621440
+net.ipv4.tcp_syn_retries = 2
+net.ipv4.tcp_window_scaling = 1
+net.ipv4.tcp_max_tw_buckets = 65535
+#增大本地端口数，对于发启很多对外的连接时有用
+net.ipv4.ip_local_port_range = 1024  65535
+#iptables 防火墙 只有加载防火墙时候有效 建议双十一当天关闭iptables
+#net.nf_conntrack_max = 25000000
+#net.netfilter.nf_conntrack_max = 25000000
+#net.netfilter.nf_conntrack_tcp_timeout_established = 180
+#net.netfilter.nf_conntrack_tcp_timeout_time_wait = 120
+#net.netfilter.nf_conntrack_tcp_timeout_close_wait = 60
+#net.netfilter.nf_conntrack_tcp_timeout_fin_wait = 120
+###设置系统最大打开文件数
+fs.file-max = 209708
+net.core.somaxconn = 16384
+net.core.netdev_max_backlog = 16384
+net.ipv4.neigh.default.gc_thresh1 = 10240
+net.ipv4.neigh.default.gc_thresh2 = 40960
+net.ipv4.neigh.default.gc_thresh3 = 81920
+vm.dirty_ratio = 10
+vm.overcommit_memory = 1
+
+
+定时校正服务器时间
+yum install ntp
+crontab -e
+*/5 * * * * ntpdate ntp.api.bz
+
+
+php-zeng监听解密文件，调整
+zend_loader.license_path=/data/www/wwwroot/config/1436944492.zl
+
+
